@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 PDF RAG Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chat-container { max-height: 400px; overflow-y: auto; }
+        .dragover { border-color: #3b82f6; background: #eff6ff; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6 max-w-4xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">📚 PDF RAG Chatbot</h1>
+        <p class="text-gray-600 mb-6">Upload multiple PDFs and ask questions about their content using AI-powered retrieval (powered by Hugging Face).</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Sidebar: File Upload -->
+            <div class="md:col-span-1">
+                <div class="bg-white shadow-lg rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-2xl mr-2">📄</span>
+                        <h2 class="text-xl font-semibold text-gray-600">Upload PDF Files</h2>
+                    </div>
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center mb-4 hover:border-blue-500 transition"
+                         ondragover="event.preventDefault(); this.classList.add('dragover');"
+                         ondragleave="this.classList.remove('dragover');"
+                         ondrop="event.preventDefault(); this.classList.remove('dragover'); handleDrop(event);">
+                        <p class="text-gray-500">Drag and drop PDF files here or click to browse</p>
+                    </div>
+                    <input type="file" id="fileInput" accept=".pdf" multiple class="hidden" onchange="handleFileSelect(event)">
+                    <button onclick="document.getElementById('fileInput').click()" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition w-full mb-2">
+                        Choose Files
+                    </button>
+                    <button onclick="clearAll()" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition w-full">
+                        Clear All
+                    </button>
+                    <div id="fileList" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Main Content: Chat Interface -->
+            <div class="md:col-span-2">
+                <div class="bg-white shadow-lg rounded-lg p-6">
+                    <div id="chatContainer" class="chat-container mb-4">
+                        <div class="p-3 rounded-lg bg-gray-100 text-gray-800">
+                            👋 Welcome! Please upload PDF files and process them to get started. Once processed, you can ask questions about their content.
+                        </div>
+                    </div>
+                    <div id="loading" class="hidden text-blue-600 mb-2">Processing...</div>
+                    <div class="flex">
+                        <input type="text" id="questionInput" class="flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask a question about your PDFs..." onkeypress="if(event.key === 'Enter') sendQuestion()">
+                        <button onclick="sendQuestion()" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-r-lg hover:bg-blue-700 transition">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'http://localhost:5000';
+        let chatHistory = [];
+
+        // Handle file drop
+        function handleDrop(event) {
+            const files = event.dataTransfer.files;
+            handleFiles(files);
+        }
+
+        // Handle file selection
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            handleFiles(files);
+        }
+
+        // Process uploaded files
+        async function handleFiles(files) {
+            const fileList = document.getElementById('fileList');
+            const loading = document.getElementById('loading');
+            loading.classList.remove('hidden');
+
+            for (const file of files) {
+                if (!file.name.toLowerCase().endsWith('.pdf')) {
+                    alert('Only PDF files are allowed');
+                    continue;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch(`${apiBaseUrl}/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'text-gray-700';
+                        fileItem.textContent = `✅ ${result.filename} (${result.chunk_count} chunks)`;
+                        fileList.appendChild(fileItem);
+                        addChatMessage('system', `Processed ${result.filename} successfully.`);
+                    } else {
+                        addChatMessage('error', `Failed to process ${file.name}: ${result.error}`);
+                    }
+                } catch (error) {
+                    addChatMessage('error', `Error uploading ${file.name}: ${error.message}`);
+                }
+            }
+
+            loading.classList.add('hidden');
+        }
+
+        // Send question to backend
+        async function sendQuestion() {
+            const questionInput = document.getElementById('questionInput');
+            const question = questionInput.value.trim();
+            const loading = document.getElementById('loading');
+
+            if (!question) return;
+
+            addChatMessage('user', question);
+            questionInput.value = '';
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    let answer = result.answer;
+                    if (result.sources.length) {
+                        answer += `<br><small>Sources: ${result.sources.join(', ')}</small>`;
+                    }
+                    answer += `<br><small>Confidence: ${(result.confidence * 100).toFixed(1)}%</small>`;
+                    addChatMessage('bot', answer);
+                } else {
+                    addChatMessage('error', `Error: ${result.error}`);
+                }
+            } catch (error) {
+                addChatMessage('error', `Error: ${error.message}`);
+            }
+
+            loading.classList.add('hidden');
+        }
+
+        // Clear all documents
+        async function clearAll() {
+            const fileList = document.getElementById('fileList');
+            const loading = document.getElementById('loading');
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/clear`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    fileList.innerHTML = '';
+                    addChatMessage('system', 'All documents cleared.');
+                } else {
+                    addChatMessage('error', `Error clearing documents: ${result.error}`);
+                }
+            } catch (error) {
+                addChatMessage('error', `Error: ${error.message}`);
+            }
+
+            loading.classList.add('hidden');
+        }
+
+        // Add message to chat
+        function addChatMessage(type, message) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-3 rounded-lg mb-2 ${
+                type === 'user' ? 'bg-blue-100 text-blue-800 ml-10' :
+                type === 'bot' ? 'bg-gray-100 text-gray-800 mr-10' :
+                type === 'error' ? 'bg-red-100 text-red-800' :
+                'bg-green-100 text-green-800'
+            }`;
+            messageDiv.innerHTML = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            chatHistory.push({ type, message });
+        }
+    </script>
+</body>
+</html>
