@@ -12,9 +12,9 @@ from datetime import datetime
 HF_API_KEY = st.secrets["HF_API_KEY"]
 HF_API_URL = "https://api-inference.huggingface.co/models/deepset/roberta-base-squad2"
 
-CHUNK_SIZE = 500
-CHUNK_OVERLAP = 50
-MAX_CHUNKS_FOR_CONTEXT = 5
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 100
+MAX_CHUNKS_FOR_CONTEXT = 3
 
 documents_store = {}
 embeddings_store = {}
