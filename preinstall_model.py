@@ -73,9 +73,10 @@ class DocumentProcessor:
 
 class RAGSystem:
     def __init__(self):
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-        self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
-        self.model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+    self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2') 
+    self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad') 
+    self.model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+
 
     def retrieve_relevant_chunks(self, query: str, top_k=MAX_CHUNKS_FOR_CONTEXT) -> List[Dict]:
         query_embedding = self.embedding_model.encode([query], convert_to_tensor=False)
