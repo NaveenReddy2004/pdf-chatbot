@@ -1,8 +1,7 @@
-streamlit
-PyPDF2
-numpy
-sentence-transformers
-scikit-learn
-requests
-transformers
 torch==1.13.1
+sentence-transformers
+transformers
+streamlit
+scikit-learn
+numpy
+PyPDF2
