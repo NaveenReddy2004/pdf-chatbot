@@ -1,8 +1,6 @@
-Flask
-flask-cors
+streamlit
 PyPDF2
 numpy
 sentence-transformers
 scikit-learn
 requests
-python-dotenv
