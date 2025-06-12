@@ -10,7 +10,7 @@ import streamlit as st
 from datetime import datetime
 
 HF_API_KEY = st.secrets["HF_API_KEY"]
-HF_API_URL = "https://api-inference.huggingface.co/models/deepset/roberta-base-squad2"
+HF_API_URL = "https://api-inference.huggingface.co/models/bert-large-uncased-whole-word-masking-finetuned-squad"
 
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 100
@@ -72,6 +72,8 @@ class DocumentProcessor:
 class RAGSystem:
     def __init__(self):
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+        self.model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 
     def retrieve_relevant_chunks(self, query: str, top_k=MAX_CHUNKS_FOR_CONTEXT) -> List[Dict]:
         query_embedding = self.embedding_model.encode([query], convert_to_tensor=False)
@@ -98,22 +100,13 @@ class RAGSystem:
             for i in top_indices if similarities[i] > 0.3
         ]
 
-    def generate_answer(self, query: str, relevant_chunks: List[Dict]) -> Dict[str, Any]:
-        if not relevant_chunks:
-            return {"answer": "No relevant info found.", "sources": [], "confidence": 0.0, "chunks_used": 0}
-
-        context = "\n\n".join([f"From {c['source']}: {c['text']}" for c in relevant_chunks])
-        sources = list({c["source"] for c in relevant_chunks})
-
-        headers = {"Authorization": f"Bearer {HF_API_KEY}", "Content-Type": "application/json"}
-        payload = {"inputs": {"question": query, "context": context}, "parameters": {"max_length": 200}}
-
-        try:
-            response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=10)
-            if response.status_code != 200:
-                return {"answer": "LLM failed to answer.", "sources": sources, "confidence": 0.0, "chunks_used": len(relevant_chunks)}
-            result = response.json()
-            answer = result.get("answer", "").strip()
-            return {"answer": answer, "sources": sources, "confidence": relevant_chunks[0]["similarity"], "chunks_used": len(relevant_chunks)}
-        except:
-            return {"answer": "Error contacting LLM API.", "sources": sources, "confidence": 0.0, "chunks_used": len(relevant_chunks)}
+    def generate_answer_with_llm(self, question: str, context: str, chunks: List[Dict]) -> str:
+    inputs = self.tokenizer(question, context, return_tensors="pt", truncation=True, max_length=512)
+    with torch.no_grad():
+        outputs = self.model(**inputs)
+        answer_start = torch.argmax(outputs.start_logits)
+        answer_end = torch.argmax(outputs.end_logits) + 1
+        answer = self.tokenizer.convert_tokens_to_string(
+            self.tokenizer.convert_ids_to_tokens(inputs["input_ids"][0][answer_start:answer_end])
+        )
+    return answer.strip()
