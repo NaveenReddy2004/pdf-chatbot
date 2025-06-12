@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 import os
-from main_engine import DocumentProcessor, RAGSystem
+from preinstall_model import DocumentProcessor, RAGSystem
 
 st.set_page_config(page_title="📚 PDF Chatbot", layout="wide")
 st.title("📚 PDF Chatbot with RAG")
