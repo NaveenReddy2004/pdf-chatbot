@@ -36,5 +36,3 @@ if st.session_state.get("pdf_ready", False):
         st.write(answer["answer"])
         st.markdown("#### 📁 Sources")
         st.write(answer["sources"])
-        st.markdown("#### 📊 Confidence")
-        st.progress(answer["confidence"])
