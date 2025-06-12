@@ -3,6 +3,8 @@ import uuid
 from typing import List, Dict, Any
 import PyPDF2
 import numpy as np
+from transformers import BertTokenizer, BertForQuestionAnswering
+import torch
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import requests
