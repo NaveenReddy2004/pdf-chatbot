@@ -19,7 +19,7 @@ embeddings_store = {}
 
 class DocumentProcessor:
     def __init__(self):
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
 
     def extract_text_from_pdf(self, file_path: str) -> str:
         text = ""
@@ -69,7 +69,7 @@ class DocumentProcessor:
 
 class RAGSystem:
     def __init__(self):
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
         self.tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
         self.model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 
