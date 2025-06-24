@@ -5,7 +5,7 @@ from groq_llm import GroqLLM
 
 def build_vector_store_from_pdf(pdf_path):
     chunks = prepare_chunks(pdf_path)
-    vector_store = VectorIndex(dim=384)
+    vector_store = VectorIndex(dim=1024)  
 
     for chunk in chunks:
         try:
