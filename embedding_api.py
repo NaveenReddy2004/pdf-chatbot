@@ -12,10 +12,13 @@ except:
 cohere_client = cohere.Client(COHERE_API_KEY)
 
 def get_embedding(text: str):
+    if not text or len(text.strip()) < 5:
+        print("Skipping embedding: input text too short")
+        return []
     try:
         response = cohere_client.embed(
             texts=[text],
-            model="embed-english-v3.0", 
+            model="embed-english-v3.0",
             input_type="search_document"
         )
         return [response.embeddings[0]]
