@@ -10,7 +10,12 @@ def build_vector_store_from_pdf(pdf_path):
     for chunk in chunks:
         try:
             embedding = get_embedding(chunk)
+            if not embedding:
+                print("Skipping chunk: no embedding returned")
+                continue
+
             vector_store.add(chunk, embedding[0])
+
         except Exception as e:
             print("Skipping a chunk:", e)
     return vector_store
