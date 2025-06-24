@@ -7,16 +7,14 @@ import time
 
 def build_vector_store_from_pdf(pdf_path):
     chunks = prepare_chunks(pdf_path)
-    vector_store = VectorIndex(dim=1024)  
-
+    vector_store = VectorIndex(dim=1024)
     for chunk in chunks:
-        try:
-            embedding = get_embedding(chunk)
-            if not embedding:
-                print("Skipping chunk: no embedding returned")
-                continue
-
-            vector_store.add(chunk, embedding[0])
+        embedding = get_embedding(chunk)
+        if not embedding:
+            print("Skipping chunk: no embedding returned")
+            continue
+        vector_store.add(chunk, embedding[0])
+        time.sleep(2)
 
         except Exception as e:
             print("Skipping a chunk:", e)
@@ -37,11 +35,3 @@ def query_rag_system(user_query, vector_store):
     llm = GroqLLM()
     response = llm(prompt)
     return response, relevant_chunks
-
-for chunk in chunks:
-    embedding = get_embedding(chunk)
-    if not embedding:
-        print("Skipping chunk: no embedding returned")
-        continue
-    vector_store.add(chunk, embedding[0])
-    time.sleep(2)
