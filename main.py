@@ -32,11 +32,12 @@ if pdf_file is not None:
 if st.session_state.vector_store:
     st.subheader("💬 Ask Questions About Your PDF")
     response_style = st.radio("Choose response type:", ["🤖 AI-Explained", "📄 Exact PDF Text"], horizontal=True)
-
-    user_query = st.text_input("Enter your question here:", key="input")
+    st.markdown("---")
+    st.markdown("### 💬 Ask another question")
+    user_query = st.chat_input("Type your question...")
 
     if user_query:
-        with st.spinner("🧠 Processing..."):
+        with st.spinner("🤖 Thinking..."):
             if response_style == "🤖 AI-Explained":
                 answer, context = query_rag_system(user_query, st.session_state.vector_store)
                 st.session_state.chat_history.append({
@@ -44,7 +45,7 @@ if st.session_state.vector_store:
                     "answer": answer,
                     "context": context,
                     "style": "ai"
-                })
+            })
             else:
                 query_embedding = get_embedding(user_query)[0]
                 chunks = st.session_state.vector_store.search(query_embedding, top_k=3)
@@ -53,7 +54,9 @@ if st.session_state.vector_store:
                     "answer": None,
                     "context": chunks,
                     "style": "exact"
-                })
+            })
+
+    st.rerun()  
 
 
 # Display Chat History
