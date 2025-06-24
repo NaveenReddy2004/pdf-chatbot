@@ -1,38 +1,73 @@
 import streamlit as st
-import tempfile
 import os
-from preinstall_model import DocumentProcessor, RAGSystem
+import tempfile
 
-st.set_page_config(page_title="📚 PDF Chatbot", layout="wide")
-st.title("📚 PDF Chatbot with RAG")
+from rag_pipeline import build_vector_store_from_pdf, query_rag_system
 
-doc_processor = DocumentProcessor()
-rag_system = RAGSystem()
+st.set_page_config(page_title="EduMed AI Chatbot", page_icon="📘", layout="wide")
+st.title("EduMed AI Chatbot")
+st.markdown("Helping students understand PDFs, research papers, and reports using Groq-powered AI.")
 
-uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"])
+# Initialize session
+if "vector_store" not in st.session_state:
+    st.session_state.vector_store = None
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-if uploaded_file:
+# PDF Upload
+st.sidebar.header("Upload Your PDF")
+pdf_file = st.sidebar.file_uploader("Choose a PDF file", type="pdf")
+
+if pdf_file is not None:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp.write(uploaded_file.read())
-        file_path = tmp.name
+        tmp.write(pdf_file.read())
+        tmp_path = tmp.name
 
-    result = doc_processor.process_document(file_path, uploaded_file.name)
-    os.remove(file_path)
+    st.sidebar.success("PDF uploaded successfully!")
+    with st.spinner("Indexing PDF... Please wait..."):
+        st.session_state.vector_store = build_vector_store_from_pdf(tmp_path)
+    st.sidebar.success("Document indexed!")
 
-    if result["success"]:
-        st.success(f"✅ Processed {uploaded_file.name} with {result['chunk_count']} chunks.")
-        st.session_state["pdf_ready"] = True
-    else:
-        st.error(f"❌ Error: {result['error']}")
+# Chat Interface 
+if st.session_state.vector_store:
+    st.subheader("💬 Ask Questions About Your PDF")
+    response_style = st.radio("Choose response type:", ["🤖 AI-Explained", "📄 Exact PDF Text"], horizontal=True)
 
-if st.session_state.get("pdf_ready", False):
-    question = st.text_input("Ask a question about the PDF")
-    if st.button("Get Answer") and question:
-        with st.spinner("Thinking..."):
-            chunks = rag_system.retrieve_relevant_chunks(question)
-            answer = rag_system.generate_answer(question, chunks)
+    user_query = st.text_input("Enter your question here:", key="input")
 
-        st.markdown("### ✅ Answer")
-        st.write(answer["answer"])
-        st.markdown("#### 📁 Sources")
-        st.write(answer["sources"])
+    if user_query:
+        with st.spinner("🧠 Processing..."):
+            if response_style == "🤖 AI-Explained":
+                answer, context = query_rag_system(user_query, st.session_state.vector_store)
+                st.session_state.chat_history.append({
+                    "question": user_query,
+                    "answer": answer,
+                    "context": context,
+                    "style": "ai"
+                })
+            else:
+                query_embedding = get_embedding(user_query)[0]
+                chunks = st.session_state.vector_store.search(query_embedding, top_k=3)
+                st.session_state.chat_history.append({
+                    "question": user_query,
+                    "answer": None,
+                    "context": chunks,
+                    "style": "exact"
+                })
+
+
+# Display Chat History
+for item in reversed(st.session_state.chat_history):
+    with st.container():
+        st.markdown(f"**🧑‍🎓 You:** {item['question']}")
+        st.markdown(f"**🤖 EduMedBot:** {item['answer']}")
+
+        with st.expander("🔎 Show Source Context"):
+            for i, chunk in enumerate(item["context"]):
+                st.markdown(f"**Chunk {i+1}:**\n```text\n{chunk.strip()[:500]}\n```")
+
+# Footer
+st.markdown("---")
+st.markdown("💡 Built using LangChain + Groq API + FAISS + Streamlit")
+
+
