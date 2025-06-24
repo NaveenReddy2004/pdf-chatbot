@@ -4,5 +4,4 @@ faiss-cpu
 cohere
 python-dotenv
 pdfplumber
-time
 tqdm>=4.66.1
