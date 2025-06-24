@@ -15,7 +15,8 @@ def build_vector_store_from_pdf(pdf_path):
             continue
         vector_store.add(chunk, embedding[0])
         time.sleep(2)
-
+    return vector_store
+    
         except Exception as e:
             print("Skipping a chunk:", e)
     return vector_store
