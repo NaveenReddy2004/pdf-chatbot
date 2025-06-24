@@ -1,7 +1,7 @@
-torch==1.13.1
-sentence-transformers
-transformers
-streamlit
-scikit-learn
-numpy
-PyPDF2
+langchain>=0.1.14
+faiss-cpu>=1.7.4
+pdfplumber>=0.10.2
+requests>=2.31.0
+python-dotenv>=1.0.1
+streamlit>=1.32.2
+tqdm>=4.66.1
