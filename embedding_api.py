@@ -13,10 +13,10 @@ except:
 cohere_client = cohere.Client(COHERE_API_KEY)
 
 def get_embedding(text: str):
-    print(f"🔍 Embedding input: {text[:50]}")
+    print(f" Embedding input: {text[:50]}")
     
     if not text or len(text.strip()) < 5:
-        print("⚠️ Text too short to embed.")
+        print(" Text too short to embed.")
         return []
     
     try:
@@ -25,8 +25,8 @@ def get_embedding(text: str):
             model="embed-english-v3.0",
             input_type="search_document"
         )
-        print("✅ Cohere API returned embedding.")
+        print(" Cohere API returned embedding.")
         return [response.embeddings[0]]
     except Exception as e:
-        print("❌ Cohere Embedding Error:", e)
+        print(" Cohere Embedding Error:", e)
         return []
