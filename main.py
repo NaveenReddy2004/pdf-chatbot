@@ -58,13 +58,17 @@ if st.session_state.vector_store:
 
 # Display Chat History
 for item in reversed(st.session_state.chat_history):
-    with st.container():
-        st.markdown(f"**🧑‍🎓 You:** {item['question']}")
-        st.markdown(f"**🤖 EduMedBot:** {item['answer']}")
+    st.markdown(f"**🧑‍🎓 You:** {item['question']}")
 
-        with st.expander("🔎 Show Source Context"):
+    if item['style'] == "ai":
+        st.markdown(f"**EduMedBot (AI Explained):** {item['answer']}")
+        with st.expander("Source Chunks"):
             for i, chunk in enumerate(item["context"]):
                 st.markdown(f"**Chunk {i+1}:**\n```text\n{chunk.strip()[:500]}\n```")
+    else:
+        st.markdown(f"**Exact PDF Chunks (Top Matches):**")
+        for i, chunk in enumerate(item["context"]):
+            st.code(chunk.strip(), language="text")
 
 # Footer
 st.markdown("---")
