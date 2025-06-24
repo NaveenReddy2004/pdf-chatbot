@@ -12,7 +12,7 @@ def build_vector_store_from_pdf(pdf_path):
             embedding = get_embedding(chunk)
             vector_store.add(chunk, embedding[0])
         except Exception as e:
-            print("⚠️ Skipping a chunk:", e)
+            print("Skipping a chunk:", e)
     return vector_store
 
 def query_rag_system(user_query, vector_store):
