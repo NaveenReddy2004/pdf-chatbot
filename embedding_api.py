@@ -1,24 +1,24 @@
-import requests
 import os
+import cohere
 from dotenv import load_dotenv
 load_dotenv()
 
-HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
-HF_TOKEN = os.getenv("HF_API_TOKEN")
+try:
+    import streamlit as st
+    COHERE_API_KEY = st.secrets["COHERE_API_KEY"]
+except:
+    COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+
+cohere_client = cohere.Client(COHERE_API_KEY)
 
 def get_embedding(text: str):
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    response = requests.post(HF_API_URL, headers=headers, json={"inputs": text})
-
-    if response.status_code != 200:
-        print("Embedding API error:", response.text)
-        return []
-
-    data = response.json()
-
-    # Sanity check
-    if isinstance(data, list) and isinstance(data[0], list):
-        return data  
-    else:
-        print("Unexpected embedding format:", data)
+    try:
+        response = cohere_client.embed(
+            texts=[text],
+            model="embed-english-v3.0", 
+            input_type="search_document"
+        )
+        return [response.embeddings[0]]
+    except Exception as e:
+        print("Cohere Embedding Error:", e)
         return []
