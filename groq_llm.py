@@ -1,13 +1,14 @@
 import os
 import requests
+from typing import List, ClassVar
 from langchain.llms.base import LLM
-from typing import List
 from dotenv import load_dotenv
+
 load_dotenv()
 
 class GroqLLM(LLM):
-    model = "llama3-70b-8192"
-    groq_api_key = os.getenv("GROQ_API_KEY")
+    model: ClassVar[str] = "llama3-70b-8192"
+    groq_api_key: ClassVar[str] = os.getenv("GROQ_API_KEY")
 
     def _call(self, prompt: str, stop: List[str] = None) -> str:
         url = "https://api.groq.com/openai/v1/chat/completions"
