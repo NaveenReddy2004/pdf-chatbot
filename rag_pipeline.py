@@ -2,6 +2,16 @@ from preprocess import prepare_chunks
 from embedding_api import get_embedding
 from vector_store import VectorIndex
 from groq_llm import GroqLLM
+import time
+
+for chunk in chunks:
+    embedding = get_embedding(chunk)
+    if not embedding:
+        print("Skipping chunk: no embedding returned")
+        continue
+    vector_store.add(chunk, embedding[0])
+    time.sleep(2) 
+
 
 def build_vector_store_from_pdf(pdf_path):
     chunks = prepare_chunks(pdf_path)
