@@ -6,7 +6,7 @@ Built using **LangChain**, **FAISS**, **Streamlit**, and **LLMs (Groq/Cohere)**,
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
 🔗 [Try the App on Streamlit Cloud](https://pdf-chatbot-ic4lfmqkkb6ndc5hwyg3jk.streamlit.app/)
 
@@ -14,15 +14,15 @@ Built using **LangChain**, **FAISS**, **Streamlit**, and **LLMs (Groq/Cohere)**,
 
 ## 💡 Features
 
-- ✅ Upload any PDF file (notes, papers, reports)
-- 🧠 RAG-based response generation using vector similarity search
-- 🗣️ Two response modes:
-  - 🤖 AI-Explained (LLM generates answer using PDF context)
-  - 📄 Exact Match (Top chunks from your PDF)
-- 🔍 Powered by Cohere for embeddings and Groq LLMs for answers
-- 💬 Chat-style interface with contextual memory (like ChatGPT)
-- 🧾 Source chunk viewing with expand/collapse toggles
-- 🌐 Streamlit UI – lightweight, clean, responsive
+- Upload any PDF file (notes, papers, reports)
+- RAG-based response generation using vector similarity search
+- Two response modes:
+  - AI-Explained (LLM generates answer using PDF context)
+  - Exact Match (Top chunks from your PDF)
+- Powered by Cohere for embeddings and Groq LLMs for answers
+- Chat-style interface with contextual memory (like ChatGPT)
+- Source chunk viewing with expand/collapse toggles
+- Streamlit UI – lightweight, clean, responsive
 
 ---
 
@@ -42,7 +42,7 @@ Built using **LangChain**, **FAISS**, **Streamlit**, and **LLMs (Groq/Cohere)**,
 
 ## 📁 Project Structure
 
-📦 pdf-chatbot/
+pdf-chatbot/
 ├── app.py # Streamlit UI
 ├── rag_pipeline.py # Embedding, retrieval, RAG query logic
 ├── embedding_api.py # Embedding via Cohere
